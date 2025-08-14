@@ -1,5 +1,4 @@
-iTV
-轮播,#genre#
+iTV 轮播,#genre#
 家庭影院,http://fxgm.fxjf.work:19901/tsfile/live/1014_1.m3u8?key=txiptv&playlive=1&authid=0
 动作电影,http://fxgm.fxjf.work:19901/tsfile/live/1015_1.m3u8?key=txiptv&playlive=1&authid=0
 高清电影,http://fxgm.fxjf.work:19901/tsfile/live/1016_1.m3u8?key=txiptv&playlive=1&authid=0
@@ -69,8 +68,7 @@ CCTV5+体育赛事,http://fxgm.fxjf.work:19901/tsfile/live/0016_1.m3u8?key=txipt
 金鹰卡通,http://fxgm.fxjf.work:19901/tsfile/live/1012_1.m3u8?key=txiptv&playlive=1&authid=0
 优漫卡通,http://fxgm.fxjf.work:19901/tsfile/live/1013_1.m3u8?key=txiptv&playlive=1&authid=0
 
-lnlt
-卫视,#genre#
+lnlt 卫视,#genre#
 辽宁卫视,http://124.94.199.201:9902/tsfile/live/0121_1.m3u8?key=txiptv&playlive=1&authid=0
 北京卫视,http://124.94.199.201:9902/tsfile/live/0122_1.m3u8?key=txiptv&playlive=1&authid=0
 天津卫视,http://124.94.199.201:9902/tsfile/live/0135_1.m3u8?key=txiptv&playlive=1&authid=0
@@ -141,8 +139,7 @@ CCTV14-少儿,http://124.94.199.201:9902/tsfile/live/0014_1.m3u8?key=txiptv&play
 CCTV15-音乐,http://124.94.199.201:9902/tsfile/live/0015_1.m3u8?key=txiptv&playlive=1&authid=0
 
 
-sdzb
-吉林酒店源,#genre#
+sdzb 吉林酒店源,#genre#
 吉林都市,http://tpc.x3322.net:9901/tsfile/live/1002_1.m3u8?key=txiptv&playlive=1&authid=0
 吉林综艺,http://tpc.x3322.net:9901/tsfile/live/1003_1.m3u8?key=txiptv&playlive=1&authid=0
 吉林影视,http://tpc.x3322.net:9901/tsfile/live/1006_1.m3u8?key=txiptv&playlive=1&authid=0
