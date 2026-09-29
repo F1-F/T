@@ -1,188 +1,393 @@
-name: Update xiaosa
+name: Update xiaosa and aowu
 
 on:
   workflow_dispatch:
+
   schedule:
     - cron: "20 5 * * *"
+
   push:
     branches:
       - master
     paths:
       - "tools/**"
+      - ".github/workflows/run.yml"
 
 
 jobs:
 
+  # ============================================================
+  # Xiaosa
+  # ============================================================
+
   xiaosa:
+    name: Build xiaosa
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
 
       - name: Checkout the branch
         uses: actions/checkout@v7
 
-
-      - name: xiaosa tools
+      - name: Install dependencies
         run: |
-          pwd
-          cd tools/
-
+          python -m pip install --upgrade pip
           pip install demjson3 pycryptodome requests --break-system-packages
 
-          python tvbox.py https://9877.kstore.space/sun.json xs.json dec
+      - name: Build xiaosa
+        working-directory: tools
+        shell: bash
+        run: |
+
+          echo "========================================"
+          echo "开始构建 xiaosa"
+          echo "========================================"
+
+          python tvbox.py \
+            https://9877.kstore.space/sun.json \
+            xs.json \
+            dec
 
           python build_local.py xs.json output
 
-          \cp -pdr output/* ../xiaosa/
+          echo ""
+          echo "========================================"
+          echo "检查 output"
+          echo "========================================"
 
-          python xiao.py ./output/api.json dianshi.json
+          find output -maxdepth 3 -type f -print || true
 
-          python xiao.py ./output/api.json jsm.json
+          echo ""
+          echo "========================================"
+          echo "生成 xiaosa 配置"
+          echo "========================================"
+
+          python xiao.py ./output/api.json ../dianshi.json
+          python xiao.py ./output/api.json ../jsm.json
 
           python copy_xbpq.py ./output/api.json
 
-          \cp -pdr dianshi_with_app_sites.json ../dianshi.json
+          echo ""
+          echo "========================================"
+          echo "复制生成文件"
+          echo "========================================"
 
-          \cp -pdr jsm_with_app_sites.json ../jsm.json
+          mkdir -p ../xiaosa
+          mkdir -p ../jar
 
-          \cp -pdr ./output/spider.jar ../jar/spider.jar
+          cp -a output/. ../xiaosa/
 
-          rm -rf dianshi_with_app_sites.json jsm_with_app_sites.json output xs.json
+          if [ -f output/spider.jar ]; then
+            cp -f output/spider.jar ../jar/spider.jar
+          fi
 
-          cd ../
+          if [ -f dianshi_with_app_sites.json ]; then
+            cp -f dianshi_with_app_sites.json ../dianshi.json
+          fi
 
-        shell: bash
+          if [ -f jsm_with_app_sites.json ]; then
+            cp -f jsm_with_app_sites.json ../jsm.json
+          fi
+
+          echo ""
+          echo "========================================"
+          echo "xiaosa 构建完成"
+          echo "========================================"
+
+      # ----------------------------------------------------------
+      # 关键：上传 artifact
+      # ----------------------------------------------------------
+
+      - name: Upload xiaosa output
+        uses: actions/upload-artifact@v4
+        with:
+          name: xiaosa-output
+          path: |
+            xiaosa/
+            jar/
+            dianshi.json
+            jsm.json
+          if-no-files-found: error
+          retention-days: 1
 
 
+  # ============================================================
+  # AOWU
+  # ============================================================
 
   aowu:
-
-    runs-on: ubuntu-latest
-
-    continue-on-error: true
-
-
-    steps:
-
-
-      - name: Checkout the branch
-        uses: actions/checkout@v7
-
-
-
-      - name: aowu tools
-
-        run: |
-
-          pwd
-
-          cd tools/
-
-
+    name: Build AOWU
+    --upgrade pip
           pip install demjson3 pycryptodome requests --break-system-packages
 
+      - name: Build AOWU
+        working-directory: tools
+        shell: bash
+        run: |
 
-          # 解密嗷呜接口
+          echo "========================================"
+          echo "开始构建 AOWU"
+          echo "========================================"
 
-          python tvbox.py http://www.英格里希嗷呜.top/tv aowu.json dec
+          python tvbox.py \
+            http://www.英格里希嗷呜.top/tv \
+            aowu.json \
+            dec
 
-
-          # 清理配置并生成spider
+          echo ""
+          echo "========================================"
+          echo "处理 AOWU 配置"
+          echo "========================================"
 
           python aowu.py aowu.json
 
+          echo ""
+          echo "========================================"
+          echo "检查生成文件"
+          echo "========================================"
 
-          # 保存最终配置
+          ls -lah
+          ls -lah ../jar || true
 
-          \cp -pdr tvbox_cleaned.json ../aowu.json
+          echo ""
+          echo "========================================"
+          echo "准备 AOWU 目录"
+          echo "========================================"
 
-
-          # 拉取AOWU扩展
-
-          cd ../
-
+          cd ..
 
           rm -rf AOWU
 
+          mkdir -p AOWU
 
-          git clone --depth=1 --recursive https://github.com/F1-F/T AOWU
+          # ------------------------------------------------------
+          # 从当前仓库获取 AOWU 本地扩展
+          #
+          # 不再把整个仓库 clone 到 AOWU/
+          # 避免出现：
+          #
+          # AOWU/T/
+          # AOWU/.git/
+          # AOWU/tools/
+          #
+          # 只保留 AOWU 扩展目录
+          # ------------------------------------------------------
+
+          if [ -d aowu ]; then
+            cp -a aowu/. AOWU/
+          else
+            echo "⚠️ 当前仓库没有 aowu/ 目录"
+          fi
+
+          echo ""
+          echo "========================================"
+          echo "AOWU 目录内容"
+          echo "========================================"
+
+          find AOWU -maxdepth 4 -type f -print || true
+
+          echo ""
+          echo "========================================"
+          echo "生成 aowu.json"
+          echo "========================================"
+
+          if [ -f tools/tvbox_cleaned.json ]; then
+            cp -f tools/tvbox_cleaned.json aowu.json
+          else
+            echo "❌ tools/tvbox_cleaned.json 不存在"
+            exit 1
+          fi
+
+          echo ""
+          echo "========================================"
+          echo "检查 aowu.json"
+          echo "========================================"
+
+          python - <<'PY'
+          import json
+
+          with open("aowu.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+
+          print("spider =", data.get("spider"))
+
+          sites = data.get("sites", [])
+
+          print("sites =", len(sites))
+
+          for site in sites:
+              if isinstance(site, dict):
+                  for key in ("api", "ext"):
+                      value = site.get(key)
+
+                      if isinstance(value, str):
+                          if value.startswith("./AOWU"):
+                              print("AOWU:", value)
+
+          PY
+
+          echo ""
+          echo "========================================"
+          echo "AOWU 构建完成"
+          echo "========================================"
+
+      # ----------------------------------------------------------
+      # 关键：上传 artifact
+      # ----------------------------------------------------------
+
+      - name: Upload AOWU output
+        uses: actions/upload-artifact@v4
+        with:
+          name: aowu-output
+          path: |
+            AOWU/
+            aowu.json
+            jar/aowu.jar
+          if-no-files-found: error
+          retention-days: 1
 
 
-          echo "AOWU扩展更新完成"
-
-
-          rm -rf tools/tvbox_cleaned.json tools/aowu.json
-
-
-        shell: bash
-
-
-
+  # ============================================================
+  # Git Push
+  # ============================================================
 
   git-push:
-
-
-    needs: [xiaosa, aowu]
+    name: Push generated files
+    needs:
+      - xiaosa
+      - aowu
 
     runs-on: ubuntu-latest
 
+    # 两个 Job 都成功才提交
+    if: |
+      needs.xiaosa.result == 'success' &&
+      needs.aowu.result == 'success'
 
-    if: always()
-
+    permissions:
+      contents: write
 
     steps:
 
-
       - name: Checkout the branch
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-
+      # ----------------------------------------------------------
+      # 下载 xiaosa
+      # ----------------------------------------------------------
 
       - name: Download xiaosa artifacts
-
-        uses: actions/download-artifact@v8
-
+        uses: actions/download-artifact@v4
         with:
-
           name: xiaosa-output
+          path: .
 
-        continue-on-error: true
+      # ----------------------------------------------------------
+      # 下载 AOWU
+      # ----------------------------------------------------------
 
-
-
-      - name: Download aowu artifacts
-
-        uses: actions/download-artifact@v8
-
+      - name: Download AOWU artifacts
+        uses: actions/download-artifact@v4
         with:
-
           name: aowu-output
+          path: .
 
-        continue-on-error: true
+      # ----------------------------------------------------------
+      # 检查最终目录
+      # ----------------------------------------------------------
 
-
-
-      - name: Git push assets
-
+      - name: Check generated files
+        shell: bash
         run: |
 
-          git config --local user.name "github-actions[bot]"
+          echo "========================================"
+          echo "最终文件检查"
+          echo "========================================"
 
+          echo ""
+          echo "AOWU:"
+          find AOWU -maxdepth 4 -type f -print 2>/dev/null || true
+
+          echo ""
+          echo "xiaosa:"
+          find xiaosa -maxdepth 4 -type f -print 2>/dev/null || true
+
+          echo ""
+          echo "jar:"
+          find jar -maxdepth 2 -type f -print 2>/dev/null || true
+
+          echo ""
+          echo "JSON:"
+          ls -lah *.json 2>/dev/null || true
+
+      # ----------------------------------------------------------
+      # 删除不需要的文件
+      # ----------------------------------------------------------
+
+      - name: Clean temporary files
+        shell: bash
+        run: |
+
+          # 不需要 fan.txt
+          rm -f fan.txt
+
+          # 不需要临时文件
+          rm -f tools/aowu.json
+          rm -f tools/tvbox_cleaned.json
+          rm -f tools/xs.json
+
+          # 删除可能存在的嵌套 Git
+          rm -rf AOWU/.git
+
+          echo "临时文件清理完成"
+
+      # ----------------------------------------------------------
+      # Git Push
+      # ----------------------------------------------------------
+
+      - name: Git push assets
+        shell: bash
+        run: |
+
+          echo "========================================"
+          echo "准备提交"
+          echo "========================================"
+
+          git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
 
+          git add -A
 
-          git add .
+          echo ""
+          echo "========================================"
+          echo "Git 状态"
+          echo "========================================"
 
+          git status --short
 
-          if ! git diff-index --quiet HEAD --; then
-
-            git commit -m "更新源 $(date +%Y%m%d%H%M)"
-
-            git push -f origin master
-
-          else
-
+          if git diff --cached --quiet; then
+            echo ""
             echo "没有文件更新，不执行 git push"
-
+            exit 0
           fi
+
+          echo ""
+          echo "========================================"
+          echo "提交文件"
+          echo "========================================"
+
+          git commit -m "更新源 $(date +%Y%m%d%H%M)"
+
+          echo ""
+          echo "========================================"
+          echo "推送到 master"
+          echo "========================================"
+
+          git push origin master
+
+          echo ""
+          echo "========================================"
+          echo "✅ Git push 完成"
+          echo "========================================"
