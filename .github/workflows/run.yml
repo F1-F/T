@@ -1,0 +1,188 @@
+name: Update xiaosa
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 5 * * *"
+  push:
+    branches:
+      - master
+    paths:
+      - "tools/**"
+
+
+jobs:
+
+  xiaosa:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+
+      - name: Checkout the branch
+        uses: actions/checkout@v7
+
+
+      - name: xiaosa tools
+        run: |
+          pwd
+          cd tools/
+
+          pip install demjson3 pycryptodome requests --break-system-packages
+
+          python tvbox.py https://9877.kstore.space/sun.json xs.json dec
+
+          python build_local.py xs.json output
+
+          \cp -pdr output/* ../xiaosa/
+
+          python xiao.py ./output/api.json dianshi.json
+
+          python xiao.py ./output/api.json jsm.json
+
+          python copy_xbpq.py ./output/api.json
+
+          \cp -pdr dianshi_with_app_sites.json ../dianshi.json
+
+          \cp -pdr jsm_with_app_sites.json ../jsm.json
+
+          \cp -pdr ./output/spider.jar ../jar/spider.jar
+
+          rm -rf dianshi_with_app_sites.json jsm_with_app_sites.json output xs.json
+
+          cd ../
+
+        shell: bash
+
+
+
+  aowu:
+
+    runs-on: ubuntu-latest
+
+    continue-on-error: true
+
+
+    steps:
+
+
+      - name: Checkout the branch
+        uses: actions/checkout@v7
+
+
+
+      - name: aowu tools
+
+        run: |
+
+          pwd
+
+          cd tools/
+
+
+          pip install demjson3 pycryptodome requests --break-system-packages
+
+
+          # 解密嗷呜接口
+
+          python tvbox.py http://www.英格里希嗷呜.top/tv aowu.json dec
+
+
+          # 清理配置并生成spider
+
+          python aowu.py aowu.json
+
+
+          # 保存最终配置
+
+          \cp -pdr tvbox_cleaned.json ../aowu.json
+
+
+          # 拉取AOWU扩展
+
+          cd ../
+
+
+          rm -rf AOWU
+
+
+          git clone --depth=1 --recursive https://github.com/F1-F/T AOWU
+
+
+          echo "AOWU扩展更新完成"
+
+
+          rm -rf tools/tvbox_cleaned.json tools/aowu.json
+
+
+        shell: bash
+
+
+
+
+  git-push:
+
+
+    needs: [xiaosa, aowu]
+
+    runs-on: ubuntu-latest
+
+
+    if: always()
+
+
+    steps:
+
+
+      - name: Checkout the branch
+        uses: actions/checkout@v7
+
+
+
+      - name: Download xiaosa artifacts
+
+        uses: actions/download-artifact@v8
+
+        with:
+
+          name: xiaosa-output
+
+        continue-on-error: true
+
+
+
+      - name: Download aowu artifacts
+
+        uses: actions/download-artifact@v8
+
+        with:
+
+          name: aowu-output
+
+        continue-on-error: true
+
+
+
+      - name: Git push assets
+
+        run: |
+
+          git config --local user.name "github-actions[bot]"
+
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+
+
+          git add .
+
+
+          if ! git diff-index --quiet HEAD --; then
+
+            git commit -m "更新源 $(date +%Y%m%d%H%M)"
+
+            git push -f origin master
+
+          else
+
+            echo "没有文件更新，不执行 git push"
+
+          fi
