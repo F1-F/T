@@ -1,7 +1,9 @@
 {
   "spider": "./jar/spider.jar;md5;abc13beac287a298e6b7ca91af7404cd",
   "lives": [
-    {"name": "live","boot": false,"type": 0,"url": "./tv.txt","playerType": 2,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"}
+    {"name": "migu","type": 0,"url": "https://develop202.github.io/migu_video/interface.txt","playerType": 1,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"},
+    {"name": "live","type": 0,"url": "https://epg.pw/test_channels.m3u","playerType": 1,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"},
+    {"name": "ipv6","type": 0,"url": "./tvboxtv.txt","playerType": 1,"ua": "okhttp/3.8.1","timeout": 20,"epg": "https://epg.cdn.loc.cc/?ch={name}&date={date}","logo": "https://logo.wyfc.qzz.io/{name}.png"}
   ],
   "wallpaper": "https://wallpaper-1tg.pages.dev/",
   "danmaku": "http://127.0.0.1:9978/proxy?do=danmaku&name={name}&episode={episode}",
@@ -11,7 +13,6 @@
     {"key": "本地","name": "本地 • 视频","type": 3,"api": "csp_LocalFile"},
     {"key": "预告","name": "新片 • 预告","type": 3,"api": "csp_YGP","searchable": 0},
     {"key": "新闪雷","name": "新闪雷 • MP4","type": 3,"api": "./lib/drpy2.min.js","ext": "./js/新闪雷.js","header": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"}},
-    {"key": "闪雷","name": "闪雷 • MP4","type": 3,"api": "./lib/drpy2.min.js","ext": "./js/678.js","header": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"}},
     {"key": "fyyy","name": "飞宇影院","type": 3,"api": "csp_XBPQ","searchable": 1,"quickSearch": 1,"filterable": 1,"changeable": 1,"ext": {"分类url": "http://ntfeiyu.com/nt/{cateId}/area/{area}/by/{by}/class/{class}/lang/{lang}/page/{catePg}/year/{year}.html","分类": "电影$1#电视剧$2#综艺$3#动漫$4"},"header": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"}},
     {"key": "cupfox_in","name": "茶杯狐 • cupfox.in","type": 3,"api": "./lib/drpy2.min.js","ext": "./js/茶杯狐.js","searchable": 1,"quickSearch": 1,"filterable": 0,"changeable": 1,"header": {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0"}},
     {"key": "italkbbtv","name": "ITalkBB • 外","type": 3,"api": "./py/ITalkBBTV.py","searchable": 1,"quickSearch": 1,"filterable": 0,"changeable": 1},
@@ -189,6 +190,7 @@
     {"name": "盘古","type": 0,"url": "https://www.playm3u8.cn/jiexi.php?url=","ext": {"header": {"user-agent": "Mozilla/5.0 (Linux; Android 13; V2049A Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/116.0.0.0 Mobile Safari/537.36"}}},
     {"name": "夜幕","type": 0,"url": "https://yemu.xyz/?url=","ext": {"header": {"user-agent": "Mozilla/5.0 (Linux; Android 13; V2049A Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/116.0.0.0 Mobile Safari/537.36"}}}
   ],
+  "hosts": ["cache.ott.ystenlive.itv.cmvideo.cn=base-v4-free-mghy.e.cdn.chinamobile.com", "cache.ott.bestlive.itv.cmvideo.cn=base-v4-free-mghy.e.cdn.chinamobile.com", "cache.ott.wasulive.itv.cmvideo.cn=base-v4-free-mghy.e.cdn.chinamobile.com", "cache.ott.fifalive.itv.cmvideo.cn=base-v4-free-mghy.e.cdn.chinamobile.com", "cache.ott.hnbblive.itv.cmvideo.cn=base-v4-free-mghy.e.cdn.chinamobile.com"],
   "flags": ["youku", "优酷", "优 酷", "优酷视频", "qq", "腾讯", "腾 讯", "腾讯视频", "iqiyi", "qiyi", "奇艺", "爱奇艺", "爱 奇 艺", "m1905", "xigua", "letv", "leshi", "乐视", "乐 视", "sohu", "搜狐", "搜 狐", "搜狐视频", "tudou", "mgtv", "芒果", "imgo", "芒果TV", "芒 果 T V", "bilibili", "哔 哩", "哔 哩 哔 哩", "SPA", "YuMi-vip", "pptv", "PPTV", "ltnb", "rx", "SLYS4k", "tucheng", "BYGA", "luanzi", "dxzy", "QEYSS", "aliyun", "AliS", "122", "chuangying", "CL4K", "xfyun", "wuduzy", "wasu", "renrenmi", "ppayun", "haiwaikan", "cool", "dbm3u8", "xmm", "funshion", "ruyi1080", "ruyib1080"],
   "doh": [
     {"name": "Google","url": "https://dns.google/dns-query","ips": ["8.8.4.4","8.8.8.8"]},
