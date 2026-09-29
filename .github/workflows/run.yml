@@ -1,0 +1,285 @@
+name: Build xiaosa and AOWU
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "20 5 * * *"
+
+  push:
+    branches:
+      - main
+    paths:
+      - "tools/**"
+      - ".github/workflows/run.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ==========================================
+      # 1. 拉取 main
+      # ==========================================
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # ==========================================
+      # 2. 安装 Python
+      # ==========================================
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ==========================================
+      # 3. 安装依赖
+      # ==========================================
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install demjson3 pycryptodome requests
+
+      # ==========================================
+      # 4. 创建目录
+      # ==========================================
+      - name: Prepare directories
+        run: |
+          mkdir -p xiaosa
+          mkdir -p jar
+
+      # ==========================================
+      # 5. 构建 xiaosa
+      # ==========================================
+      - name: Build xiaosa
+        shell: bash
+        run: |
+          set -e
+
+          echo "=========================================="
+          echo "开始构建 xiaosa"
+          echo "=========================================="
+
+          cd tools
+
+          echo "下载 xiaosa 数据..."
+          python tvbox.py \
+            https://9877.kstore.space/sun.json \
+            xs.json \
+            dec
+
+          echo "生成本地配置..."
+          python build_local.py xs.json output
+
+          echo "复制 xiaosa 输出..."
+          cp -pdr output/* ../xiaosa/
+
+          echo "处理 dianshi..."
+          python xiao.py ./output/api.json dianshi.json
+
+          echo "处理 jsm..."
+          python xiao.py ./output/api.json jsm.json
+
+          echo "处理 xbpq..."
+          python copy_xbpq.py ./output/api.json
+
+          echo "复制最终配置..."
+          cp -pdr dianshi_with_app_sites.json ../dianshi.json
+          cp -pdr jsm_with_app_sites.json ../jsm.json
+
+          echo "复制 spider.jar..."
+          cp -pdr ./output/spider.jar ../jar/spider.jar
+
+          echo "清理临时文件..."
+          rm -rf \
+            dianshi_with_app_sites.json \
+            jsm_with_app_sites.json \
+            output \
+            xs.json
+
+          cd ..
+
+          echo ""
+          echo "xiaosa 构建完成"
+          echo ""
+
+          echo "xiaosa 文件："
+          find xiaosa -type f -print
+
+      # ==========================================
+      # 6. 构建 AOWU
+      # ==========================================
+      - name: Build AOWU
+        shell: bash
+        run: |
+          set -e
+
+          echo "=========================================="
+          echo "开始构建 AOWU"
+          echo "=========================================="
+
+          cd tools
+
+          echo "下载 AOWU 数据..."
+          python tvbox.py \
+            http://www.英格里希嗷呜.top/tv \
+            aowu.json \
+            dec
+
+          echo "处理 AOWU 配置..."
+          python aowu.py aowu.json
+
+          echo "复制最终 AOWU 配置..."
+          cp -pdr tvbox_cleaned.json ../aowu.json
+
+          cd ..
+
+          echo ""
+          echo "AOWU 配置生成完成"
+
+          echo ""
+          echo "=========================================="
+          echo "更新 AOWU/目录"
+          echo "=========================================="
+
+          # 删除旧的 AOWU
+          rm -rf AOWU
+
+          # 下载仓库内容到临时目录
+          git clone \
+            --depth=1 \
+            --recursive \
+            https://github.com/F1-F/T \
+            /tmp/aowu_source
+
+          # 创建 AOWU
+          mkdir -p AOWU
+
+          # 复制文件
+          cp -a /tmp/aowu_source/. AOWU/
+
+          # 删除嵌套 Git 仓库
+          rm -rf AOWU/.git
+
+          # 防止递归套娃
+          rm -rf AOWU/AOWU
+
+          # 删除 AOWU 中不需要的 workflow
+          rm -rf AOWU/.github
+
+          # 删除不需要的 fan.txt
+          find AOWU -type f -name "fan.txt" -delete
+
+          # 删除临时目录
+          rm -rf /tmp/aowu_source
+
+          echo ""
+          echo "AOWU/ 更新完成"
+          echo ""
+
+          find AOWU -maxdepth 3 -type f -print | head -200
+
+      # ==========================================
+      # 7. 删除所有 fan.txt
+      # ==========================================
+      - name: Remove fan.txt
+        shell: bash
+        run: |
+          echo "删除 fan.txt..."
+
+          find . \
+            -type f \
+            -name "fan.txt" \
+            -not -path "./.git/*" \
+            -delete
+
+          echo "fan.txt 清理完成"
+
+      # ==========================================
+      # 8. 检查最终文件
+      # ==========================================
+      - name: Check output
+        shell: bash
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "最终目录"
+          echo "=========================================="
+
+          echo ""
+          echo "xiaosa/"
+          find xiaosa -type f -print 2>/dev/null || true
+
+          echo ""
+          echo "AOWU/"
+          find AOWU -maxdepth 3 -type f -print 2>/dev/null | head -200 || true
+
+          echo ""
+          echo "jar/"
+          find jar -type f -print 2>/dev/null || true
+
+          echo ""
+          echo "Git 状态："
+          git status --short
+
+      # ==========================================
+      # 9. 提交到 main
+      # ==========================================
+      - name: Git push
+        shell: bash
+        run: |
+          set -e
+
+          echo "=========================================="
+          echo "准备推送到 main"
+          echo "=========================================="
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # 添加生成文件
+          git add -A
+
+          # 再次确保 fan.txt 不会进入提交
+          git rm -r --cached --ignore-unmatch \
+            fan.txt \
+            xiaosa/fan.txt \
+            AOWU/fan.txt \
+            2>/dev/null || true
+
+          echo ""
+          echo "准备提交的文件："
+          git status --short
+
+          # 没有变化
+          if git diff --cached --quiet; then
+            echo ""
+            echo "没有文件发生变化"
+            echo "不需要 push"
+            exit 0
+          fi
+
+          # 提交
+          git commit -m "自动更新 xiaosa AOWU $(date +%Y%m%d%H%M)"
+
+          echo ""
+          echo "当前提交："
+          git rev-parse HEAD
+
+          echo ""
+          echo "推送到 main..."
+
+          # ★ 关键：你的仓库是 main
+          git push origin HEAD:main
+
+          echo ""
+          echo "=========================================="
+          echo "推送成功"
+          echo "=========================================="
