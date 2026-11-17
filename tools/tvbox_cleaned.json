@@ -1,5 +1,5 @@
 {
-  "spider": "./jar/aowu.jar;md5;7bbac56cba13eb7082cf32c283f94619",
+  "spider": "./jar/aowu.jar;md5;f448fc2d9b86ae8ca1f1ff8b35b08735",
   "logo": "https://file.icve.com.cn/file_doc/945/35/EC508FBD046D33EC4832BB76B63B6C94.gif",
   "danmaku": "http://127.0.0.1:2525/danmu?name={name}&epid={episode}",
   "wallpaper": "http://127.0.0.1:9978/proxy?do=AowuWapper&mode=2",
